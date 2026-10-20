@@ -6,7 +6,7 @@ This project demonstrates the design, deployment, and validation of a secure mul
 Administrative host management is conducted securely via an OpenSSH ProxyJump Bastion architecture without exposing private application subnets to the public internet. Defense-in-depth is implemented through strict route table scoping and stateful Security Group boundaries.
 
 ---
-
+![EC2 Workloads](01-ec2-instances-summary.png.png)
 ## 2. Infrastructure & Network Topology
 
 | Resource Name | Type | CIDR / IP Address | Role / Security Function |
@@ -22,6 +22,7 @@ Administrative host management is conducted securely via an OpenSSH ProxyJump Ba
 | **ewb-a-b-peer** | VPC Peering Link | Active (`pcx-...`) | Point-to-point Layer 3 routing link |
 
 ---
+![EC2 Workloads](02-bastion-ssh-security-group.png.png)
 
 ## 3. Administrative Access Configuration
 
@@ -49,6 +50,7 @@ Host ewb-app-b
     IdentitiesOnly yes
     ProxyJump ewb-bastion
 ```
+![EC2 Workloads](03-route-table-subnet-associations.png.png)
 ## 4. Empirical Test Results & Verification
 
 ### Test 01: Baseline Network Isolation (Pre-Peering)
@@ -64,7 +66,7 @@ ping -c 4 10.20.1.10
 ```
 
 - **Output:**
-
+![EC2 Workloads](04-public-route-table-igw.png.png)
 ```text
 PING 10.20.1.10 (10.20.1.10) 56(84) bytes of data.
 --- 10.20.1.10 ping statistics ---
@@ -74,7 +76,8 @@ PING 10.20.1.10 (10.20.1.10) 56(84) bytes of data.
 - **Analysis:** Successful negative control. Packets failed to reach the target because no route existed for destination CIDR `10.20.0.0/16` in the source VPC route table.
 
 ---
-
+![EC2 Workloads](05-vpc-peering-active.png.png)
+![EC2 Workloads](06-route-table-peering-entry.png.png)
 ### Test 02: Forward Peering Transit (VPC A to VPC B)
 
 * **Objective:** Validate private Layer 3 packet transit across active VPC Peering.
@@ -86,9 +89,9 @@ PING 10.20.1.10 (10.20.1.10) 56(84) bytes of data.
 ```bash
 ping -c 4 10.20.1.10
 ```
-
+![EC2 Workloads](07-test01-baseline-isolation.png.png)
 - **Output:**
-
+![EC2 Workloads](08-test02-forward-ping-success.png.png)
 ```text
 PING 10.20.1.10 (10.20.1.10) 56(84) bytes of data.
 64 bytes from 10.20.1.10: icmp_seq=1 ttl=64 time=1.04 ms
@@ -106,7 +109,7 @@ rtt min/avg/max/mdev = 0.980/1.012/1.040/0.022 ms
 ---
 
 ### Test 03: Reverse Symmetric Routing (VPC B to VPC A)
-
+![EC2 Workloads](09-test03-reverse-ping-success.png.png)
 * **Objective:** Confirm bidirectional routing symmetry and return-path viability.
 * **Route Injected:** `10.10.0.0/16` -> Target: `pcx-...` on `ewb-rt-b-private`
 * **Source Node:** `ewb-app-b` (`10.20.1.10`)
@@ -147,7 +150,7 @@ PING 10.10.2.10 (10.10.2.10) 56(84) bytes of data.
 ```bash
 ping -c 4 10.20.1.10
 ```
-
+![EC2 Workloads](10-test04-controlled-sg-failure.png.png)
 - **Output:**
 
 ```text
